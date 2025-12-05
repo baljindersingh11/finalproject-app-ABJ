@@ -17,18 +17,16 @@ jobs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws_session_token: ${{ secrets.AWS_SESSION_TOKEN }}
-        aws_region: us-east-1
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: us-east-1
 
     - name: Login to ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    # ---------------------------
-    # Build & Push WEBAPP image
-    # ---------------------------
+  
     - name: Build & Push Webapp Image
       run: |
         WEB_URI=${{ secrets.ECR_WEB_URI }}
@@ -36,13 +34,10 @@ jobs:
         docker tag webapp:latest $WEB_URI:latest
         docker push $WEB_URI:latest
 
-    # ---------------------------
-    # Build & Push MYSQL image
-    # ---------------------------
+    
     - name: Build & Push MySQL Image
       run: |
         MYSQL_URI=${{ secrets.ECR_MYSQL_URI }}
         docker build -t mymysql -f Dockerfile_mysql .
         docker tag mymysql:latest $MYSQL_URI:latest
         docker push $MYSQL_URI:latest
-
