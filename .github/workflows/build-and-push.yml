@@ -2,56 +2,46 @@ name: Build and Push to ECR
 
 on:
   push:
+    branches: [ "main", "master" ]
+  pull_request:
     branches: [ "main" ]
-
-permissions:
-  id-token: write      # Required for OIDC
-  contents: read       # To read the repository
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
 
-    # Authenticate to AWS using OIDC (no access keys needed)
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: arn:aws:iam::975050130168:role/LabRole
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
         aws-region: us-east-1
 
-    # Login to ECR
-    - name: Login to Amazon ECR
+    - name: Login to ECR
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
+      uses: aws-actions/amazon-ecr-login@v1
 
-    # Build + Push Webapp
-    - name: Build and push Webapp image
+    # ---------------------------
+    # Build & Push WEBAPP image
+    # ---------------------------
+    - name: Build & Push Webapp Image
       run: |
-        WEB_REPO="975050130168.dkr.ecr.us-east-1.amazonaws.com/clo835-webapp"
+        WEB_URI=${{ secrets.ECR_WEB_URI }}
+        docker build -t webapp -f Dockerfile .
+        docker tag webapp:latest $WEB_URI:latest
+        docker push $WEB_URI:latest
 
-        echo "Building webapp..."
-        docker build -t webapp -f finalproject-app-ABJ/Dockerfile finalproject-app-ABJ
-
-        echo "Tagging webapp..."
-        docker tag webapp:latest $WEB_REPO:latest
-
-        echo "Pushing webapp..."
-        docker push $WEB_REPO:latest
-
-    # Build + Push MySQL image
-    - name: Build and push MySQL image
+    # ---------------------------
+    # Build & Push MYSQL image
+    # ---------------------------
+    - name: Build & Push MySQL Image
       run: |
-        MYSQL_REPO="975050130168.dkr.ecr.us-east-1.amazonaws.com/clo835-mysql"
-
-        echo "Building MySQL..."
-        docker build -t mysqldb -f Dockerfile_mysql .
-
-        echo "Tagging MySQL..."
-        docker tag mysqldb:latest $MYSQL_REPO:latest
-
-        echo "Pushing MySQL..."
-        docker push $MYSQL_REPO:latest
+        MYSQL_URI=${{ secrets.ECR_MYSQL_URI }}
+        docker build -t mymysql -f Dockerfile_mysql .
+        docker tag mymysql:latest $MYSQL_URI:latest
+        docker push $MYSQL_URI:latest
