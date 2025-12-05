@@ -45,4 +45,3 @@ jobs:
         docker build -t mymysql -f Dockerfile_mysql .
         docker tag mymysql:latest $MYSQL_URI:latest
         docker push $MYSQL_URI:latest
-
