@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Search Employee</title>
+    <title>About</title>
 </head>
-<body style="background-color: {{ color }};">
-    <h1>Search Employee</h1>
+<body style="
+    background-image: url('/static/{{ bg_image }}');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+">
+    <h1>About This Application</h1>
 
-    <form action="/fetchdata" method="POST">
-        <label>Enter Employee ID:</label><br>
-        <input type="text" name="emp_id"><br><br>
-        <input type="submit" value="Search">
-    </form>
+    <p>This Employee Manager App was customized by <strong>{{ author }}</strong>.</p>
+    <p>It demonstrates Flask, Docker, ECR, and Kubernetes (EKS).</p>
 
-    <br>
-    <a href="/">Add Employee</a> |
-    <a href="/about">About</a>
+    <a href="/">Home</a> |
+    <a href="/getemp">Search Employee</a>
 </body>
 </html>
-

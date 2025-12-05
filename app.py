@@ -415,10 +415,13 @@ def home():
     download_background_image()
     return render_template("addemp.html", color=color_codes[COLOR], author=APP_AUTHOR)
 
-@app.route("/about", methods=['GET'])
+@app.route('/about')
 def about():
-    download_background_image()
-    return render_template("about.html", color=color_codes[COLOR], author=APP_AUTHOR)
+    return render_template(
+        'about.html',
+        author=os.getenv("AUTHOR_NAME"),
+        bg_image=os.getenv("S3_KEY")
+    )
 
 @app.route("/addemp", methods=['POST'])
 def addemp():
