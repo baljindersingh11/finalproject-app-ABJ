@@ -36,12 +36,4 @@ jobs:
         docker tag webapp:latest $WEB_URI:latest
         docker push $WEB_URI:latest
 
-    # ---------------------------
-    # Build & Push MYSQL image
-    # ---------------------------
-    - name: Build & Push MySQL Image
-      run: |
-        MYSQL_URI=${{ secrets.ECR_MYSQL_URI }}
-        docker build -t mymysql -f Dockerfile_mysql .
-        docker tag mymysql:latest $MYSQL_URI:latest
-        docker push $MYSQL_URI:latest
+  
