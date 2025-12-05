@@ -3,7 +3,12 @@
 <head>
     <title>About</title>
 </head>
-<body style="background-color: {{ color }};">
+<body style="
+    background-image: url('/static/{{ bg_image }}');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+">
     <h1>About This Application</h1>
 
     <p>This Employee Manager App was customized by <strong>{{ author }}</strong>.</p>

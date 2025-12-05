@@ -351,9 +351,7 @@ import boto3
 
 app = Flask(__name__)
 
-# ----------------------------------------------------
-# ENVIRONMENT VARIABLES
-# ----------------------------------------------------
+
 DBHOST = os.environ.get("DBHOST")
 DBUSER = os.environ.get("DBUSER")
 DBPWD = os.environ.get("DBPWD")
@@ -364,9 +362,7 @@ APP_COLOR = os.environ.get("APP_COLOR") or "lime"
 APP_AUTHOR = os.environ.get("APP_AUTHOR", "ABJ")
 BACKGROUND_IMAGE_URL = os.environ.get("BACKGROUND_IMAGE_URL")
 
-# ----------------------------------------------------
-# DATABASE CONNECTION (ACTIVE IN EKS)
-# ----------------------------------------------------
+
 db_conn = connections.Connection(
     host=DBHOST,
     port=DBPORT,
@@ -375,9 +371,7 @@ db_conn = connections.Connection(
     db=DATABASE
 )
 
-# ----------------------------------------------------
-# COLOR SUPPORT
-# ----------------------------------------------------
+
 color_codes = {
     "red": "#e74c3c",
     "green": "#16a085",
@@ -390,9 +384,7 @@ color_codes = {
 
 COLOR = APP_COLOR
 
-# ----------------------------------------------------
-# OPTIONAL BACKGROUND IMAGE
-# ----------------------------------------------------
+
 def download_background_image():
     if not BACKGROUND_IMAGE_URL:
         return
@@ -407,9 +399,7 @@ def download_background_image():
     except Exception as e:
         print("Background download failed:", e)
 
-# ----------------------------------------------------
-# ROUTES
-# ----------------------------------------------------
+
 @app.route("/", methods=['GET'])
 def home():
     download_background_image()
@@ -480,8 +470,6 @@ def fetchdata():
         author=APP_AUTHOR
     )
 
-# ----------------------------------------------------
-# ENTRY POINT
-# ----------------------------------------------------
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
