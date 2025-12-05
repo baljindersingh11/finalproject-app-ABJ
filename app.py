@@ -136,7 +136,8 @@ if __name__ == '__main__':
         exit(1)
 
     app.run(host='0.0.0.0',port=8080,debug=True)
-"""
+
+--------------------------------------------------------------------------------------------------------------
 
 from flask import Flask, render_template, request
 from pymysql import connections
@@ -163,7 +164,7 @@ APP_AUTHOR = os.environ.get("APP_AUTHOR", "ABJ")
 # ----------------------------------------------------
 # DISABLE DATABASE CONNECTION LOCALLY (ENABLE IN EKS)
 # ----------------------------------------------------
-"""
+
 db_conn = connections.Connection(
     host=DBHOST,
     port=DBPORT,
@@ -171,7 +172,7 @@ db_conn = connections.Connection(
     password=DBPWD,
     db=DATABASE
 )
-"""
+
 #output = {}
 #table = 'employee'
 
@@ -244,10 +245,7 @@ def AddEmp():
     primary_skill = request.form['primary_skill']
     location = request.form['location']
 
-    # --------------------------------------
-    # DISABLED LOCALLY — ENABLE IN EKS
-    # --------------------------------------
-    """
+   
     insert_sql = "INSERT INTO employee VALUES (%s, %s, %s, %s, %s)"
     cursor = db_conn.cursor()
 
@@ -257,7 +255,7 @@ def AddEmp():
         emp_name = first_name + " " + last_name
     finally:
         cursor.close()
-    """
+   
 
     emp_name = first_name + " " + last_name  # Temporary local behavior
     print("Simulated insert complete (DB disabled locally).")
@@ -279,10 +277,7 @@ def GetEmp():
 def FetchData():
     emp_id = request.form['emp_id']
 
-    # --------------------------------------
-    # DISABLED LOCALLY — ENABLE IN EKS
-    # --------------------------------------
-    """
+  
     select_sql = "SELECT emp_id, first_name, last_name, primary_skill, location FROM employee WHERE emp_id=%s"
     cursor = db_conn.cursor()
     try:
@@ -298,7 +293,7 @@ def FetchData():
         }
     finally:
         cursor.close()
-    """
+    
 
     # Placeholder results for local testing
     output = {
@@ -342,4 +337,148 @@ if __name__ == '__main__':
     print("App Author:", APP_AUTHOR)
     print("Background Image URL:", BACKGROUND_IMAGE_URL)
 
-    app.run(host='0.0.0.0', port=81, debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)
+
+
+"""
+
+from flask import Flask, render_template, request
+from pymysql import connections
+import os
+import random
+import argparse
+import boto3
+
+app = Flask(__name__)
+
+# ----------------------------------------------------
+# ENVIRONMENT VARIABLES
+# ----------------------------------------------------
+DBHOST = os.environ.get("DBHOST")
+DBUSER = os.environ.get("DBUSER")
+DBPWD = os.environ.get("DBPWD")
+DATABASE = os.environ.get("DATABASE")
+DBPORT = int(os.environ.get("DBPORT"))
+
+APP_COLOR = os.environ.get("APP_COLOR") or "lime"
+APP_AUTHOR = os.environ.get("APP_AUTHOR", "ABJ")
+BACKGROUND_IMAGE_URL = os.environ.get("BACKGROUND_IMAGE_URL")
+
+# ----------------------------------------------------
+# DATABASE CONNECTION (ACTIVE IN EKS)
+# ----------------------------------------------------
+db_conn = connections.Connection(
+    host=DBHOST,
+    port=DBPORT,
+    user=DBUSER,
+    password=DBPWD,
+    db=DATABASE
+)
+
+# ----------------------------------------------------
+# COLOR SUPPORT
+# ----------------------------------------------------
+color_codes = {
+    "red": "#e74c3c",
+    "green": "#16a085",
+    "blue": "#89CFF0",
+    "blue2": "#30336b",
+    "pink": "#f4c2c2",
+    "darkblue": "#130f40",
+    "lime": "#C1FF9C",
+}
+
+COLOR = APP_COLOR
+
+# ----------------------------------------------------
+# OPTIONAL BACKGROUND IMAGE
+# ----------------------------------------------------
+def download_background_image():
+    if not BACKGROUND_IMAGE_URL:
+        return
+
+    try:
+        s3 = boto3.client("s3")
+        cleaned = BACKGROUND_IMAGE_URL.replace("s3://", "")
+        bucket = cleaned.split("/")[0]
+        key = "/".join(cleaned.split("/")[1:])
+        local_path = "static/background.jpg"
+        s3.download_file(bucket, key, local_path)
+    except Exception as e:
+        print("Background download failed:", e)
+
+# ----------------------------------------------------
+# ROUTES
+# ----------------------------------------------------
+@app.route("/", methods=['GET'])
+def home():
+    download_background_image()
+    return render_template("addemp.html", color=color_codes[COLOR], author=APP_AUTHOR)
+
+@app.route("/about", methods=['GET'])
+def about():
+    download_background_image()
+    return render_template("about.html", color=color_codes[COLOR], author=APP_AUTHOR)
+
+@app.route("/addemp", methods=['POST'])
+def addemp():
+    emp_id = request.form['emp_id']
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    primary_skill = request.form['primary_skill']
+    location = request.form['location']
+
+    insert_sql = "INSERT INTO employee VALUES (%s, %s, %s, %s, %s)"
+    cursor = db_conn.cursor()
+
+    try:
+        cursor.execute(insert_sql, (emp_id, first_name, last_name, primary_skill, location))
+        db_conn.commit()
+        emp_name = first_name + " " + last_name
+    finally:
+        cursor.close()
+
+    return render_template("addempoutput.html", name=emp_name, color=color_codes[COLOR], author=APP_AUTHOR)
+
+@app.route("/getemp", methods=['GET'])
+def getemp():
+    return render_template("getemp.html", color=color_codes[COLOR], author=APP_AUTHOR)
+
+@app.route("/fetchdata", methods=['POST'])
+def fetchdata():
+    emp_id = request.form['emp_id']
+    select_sql = "SELECT emp_id, first_name, last_name, primary_skill, location FROM employee WHERE emp_id=%s"
+    cursor = db_conn.cursor()
+
+    try:
+        cursor.execute(select_sql, (emp_id,))
+        result = cursor.fetchone()
+        if not result:
+            return f"Employee with ID {emp_id} not found", 404
+
+        output = {
+            "emp_id": result[0],
+            "first_name": result[1],
+            "last_name": result[2],
+            "primary_skills": result[3],
+            "location": result[4],
+        }
+    finally:
+        cursor.close()
+
+    return render_template(
+        "getempoutput.html",
+        id=output["emp_id"],
+        fname=output["first_name"],
+        lname=output["last_name"],
+        interest=output["primary_skills"],
+        location=output["location"],
+        color=color_codes[COLOR],
+        author=APP_AUTHOR
+    )
+
+# ----------------------------------------------------
+# ENTRY POINT
+# ----------------------------------------------------
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080, debug=True)

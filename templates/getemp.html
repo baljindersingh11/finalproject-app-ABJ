@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Employee</title>
+</head>
+<body style="background-color: {{ color }};">
+    <h1>Search Employee</h1>
+
+    <form action="/fetchdata" method="POST">
+        <label>Enter Employee ID:</label><br>
+        <input type="text" name="emp_id"><br><br>
+        <input type="submit" value="Search">
+    </form>
+
+    <br>
+    <a href="/">Add Employee</a> |
+    <a href="/about">About</a>
+</body>
+</html>
+
